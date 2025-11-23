@@ -1,52 +1,48 @@
+import os
 import requests
-import re
 import dropbox
+import re
 from datetime import datetime
 
-# ==== CONFIG ====
-DROPBOX_TOKEN = "sl.u.AG...YOUR_TOKEN_HERE..."  # Sənin token
-DROPBOX_FOLDER = "/NowTur"                        # Dropbox qovluğu
-CHANNELS = {
-    "ERSTRM": "https://www.nowtv.com.tr/canli-yayin",
-    "DAI": "https://www.nowtv.com.tr/canli-yayin"  # lazım gələrsə əlavə et
-}
-# =================
+# ---------------- CONFIG ----------------
+DROPBOX_TOKEN = os.environ.get("DROPBOX_TOKEN")
+DROPBOX_FOLDER = "/NOWTV"  # Dropbox-da qovluq adı
+NOWTV_URL = "https://www.nowtv.com.tr/canli-yayin"
+# ----------------------------------------
 
 dbx = dropbox.Dropbox(DROPBOX_TOKEN)
 
 def get_tokened_link(url):
-    """NOWTV səhifəsindən tokenli linki götürür"""
     try:
-        resp = requests.get(url, verify=False, timeout=10)
-        resp.raise_for_status()
-        match = re.search(r"daiUrl\s*:\s*'(https?://[^\']+)'", resp.text)
+        response = requests.get(url, verify=False, timeout=10)
+        if response.status_code != 200:
+            print(f"Failed to fetch {url} : {response.status_code}")
+            return None
+        match = re.search(r"daiUrl\s*:\s*'(https?://[^\']+)'", response.text)
         if match:
             return match.group(1)
+        else:
+            print("Tokened link not found")
+            return None
     except Exception as e:
         print(f"Error fetching tokened link: {e}")
-    return None
+        return None
 
-def safe_filename(name):
-    """Dropbox üçün təhlükəsiz ASCII fayl adı"""
-    return re.sub(r'[^A-Za-z0-9_\-\.]', '_', name)
-
-def upload_to_dropbox(channel_name, link):
-    """Tokenli linki .m3u8 faylı kimi Dropbox-a yükləyir"""
-    filename = f"{safe_filename(channel_name)}.m3u8"
-    dropbox_path = f"{DROPBOX_FOLDER}/{filename}"
+def upload_to_dropbox(name, link):
+    if not link:
+        return
+    # Fayl adı: NOWTV_YYYYMMDD_HHMM.m3u8
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    filename = f"{DROPBOX_FOLDER}/{name}_{timestamp}.m3u8"
     try:
-        dbx.files_upload(link.encode('utf-8'), dropbox_path, mode=dropbox.files.WriteMode.overwrite)
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Uploaded {dropbox_path}")
+        dbx.files_upload(link.encode('utf-8'), filename, mode=dropbox.files.WriteMode.overwrite)
+        print(f"Uploaded to Dropbox: {filename}")
     except Exception as e:
         print(f"Dropbox upload error: {e}")
 
 def main():
-    for name, url in CHANNELS.items():
-        link = get_tokened_link(url)
-        if link:
-            upload_to_dropbox(name, link)
-        else:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] Failed to get link for {name}")
+    link = get_tokened_link(NOWTV_URL)
+    upload_to_dropbox("NOWTV", link)
 
 if __name__ == "__main__":
     main()
