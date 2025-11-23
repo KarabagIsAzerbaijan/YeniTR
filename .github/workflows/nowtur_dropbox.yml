@@ -1,28 +1,26 @@
-name: Update NOWTV Dropbox
+name: NOWTUR Dropbox Update
 
 on:
   schedule:
-    # hər 5 dəqiqədə çalışacaq
-    - cron: "*/5 * * * *"
+    - cron: "*/5 * * * *"   # Sənin 5 dəqiqəlik avtomatik cron
+  workflow_dispatch:       # ← Bunu əlavə edirəm, manual RUN üçün
 
 jobs:
-  update-nowtv:
+  update:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.13"
+          python-version: 3.13
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests dropbox
+        run: pip install requests dropbox urllib3
 
-      - name: Run script
+      - name: Run NOWTUR Dropbox Script
         run: python ressources/tur/nowtur_dropbox.py
-        env:
-          DROPBOX_TOKEN: ${{ secrets.DROPBOX_TOKEN }}
+
