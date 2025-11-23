@@ -30,7 +30,7 @@ def get_tokened_link(url):
 
 def create_m3u8_content(tokened_url):
     return f"""#EXTM3U
-#EXT-X-VERSION:3
+#EXT-X-VERSION:1
 #EXT-X-STREAM-INF:BANDWIDTH=230000,CODECS="avc1.4d001e,avc1.42000d,avc1.64000c,avc1.64001e,avc1.64001f,mp4a.40.2,mp4a.40.5"
 {tokened_url}
 """
