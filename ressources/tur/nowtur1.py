@@ -1,26 +1,55 @@
 import requests
+import re
 import dropbox
+from datetime import datetime
 
-# Dropbox token və yollar
-DROPBOX_TOKEN = "sənin_dropbox_token"
-DROPBOX_ERSTRM_PATH = "/nowtur1/ERSTRM/ERSTRM.m3u8"
-DROPBOX_DASTRM_PATH = "/nowtur1/DASTRM/DASTRM.m3u8"
+# =============================
+# CONFIG
+# =============================
+DROPBOX_TOKEN = "sl.u.AGK4...sənin_token_daxil_et"  # Buraya Dropbox token
+DROPBOX_FOLDER_ERSTRM = "/nowturk1/ERSTRM/"
+DROPBOX_FOLDER_DASTRM = "/nowturk1/DASTRM/"
 
-# Tokenləri çək
+URL_ERSTRM = "https://www.nowtv.com.tr/canli-yayin"
+URL_DASTRM = "https://www.nowtv.com.tr/canli-yayin"  # lazım gələrsə dəyiş
+
+# =============================
+# HELPERS
+# =============================
 def get_tokened_link(url):
     resp = requests.get(url, verify=False)
-    # regex ilə tokenli linki tap
-    return tokened_link
+    if resp.status_code != 200:
+        raise Exception(f"Failed to fetch URL {url}")
+    
+    match = re.search(r"daiUrl\s*:\s*'(https?://[^\']+)'", resp.text)
+    if match:
+        tokened_link = match.group(1)
+        return tokened_link
+    else:
+        raise Exception("Tokenli link tapılmadı")
 
-# Faylı Dropbox-a yaz
-def upload_to_dropbox(dbx, path, content):
-    dbx.files_upload(content.encode(), path, mode=dropbox.files.WriteMode.overwrite)
+def upload_to_dropbox(file_content, dropbox_path):
+    dbx = dropbox.Dropbox(DROPBOX_TOKEN)
+    dbx.files_upload(file_content.encode(), dropbox_path, mode=dropbox.files.WriteMode.overwrite)
+    print(f"Uploaded: {dropbox_path}")
 
-dbx = dropbox.Dropbox(DROPBOX_TOKEN)
+# =============================
+# MAIN
+# =============================
+def main():
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
 
-erstrm_link = get_tokened_link("https://www.nowtv.com.tr/canli-yayin")
-dastrm_link = get_tokened_link("...")
+    # ERSTRM
+    erstrm_link = get_tokened_link(URL_ERSTRM)
+    erstrm_filename = f"ERSTRM_{timestamp}.m3u8"
+    upload_to_dropbox(erstrm_link, DROPBOX_FOLDER_ERSTRM + erstrm_filename)
 
-# Faylları Dropbox-a yaz
-upload_to_dropbox(dbx, DROPBOX_ERSTRM_PATH, erstrm_link)
-upload_to_dropbox(dbx, DROPBOX_DASTRM_PATH, dastrm_link)
+    # DASTRM
+    dastrm_link = get_tokened_link(URL_DASTRM)
+    dastrm_filename = f"DASTRM_{timestamp}.m3u8"
+    upload_to_dropbox(dastrm_link, DROPBOX_FOLDER_DASTRM + dastrm_filename)
+
+    print("Bütün fayllar Dropbox-a əlavə olundu.")
+
+if __name__ == "__main__":
+    main()
