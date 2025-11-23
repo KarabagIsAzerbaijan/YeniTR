@@ -1,29 +1,40 @@
 import os
 import requests
 import dropbox
+from urllib.parse import urlparse
 
-# Environment variables
-erstrm_url = os.environ.get("ERSTRM_URL")
-dastrm_url = os.environ.get("DASTRM_URL")
-dropbox_token = os.environ.get("DROPBOX_TOKEN")
+# Secrets vəya environment variables
+ERSTRM_URL = os.environ.get("ERSTRM_URL")
+DASTRM_URL = os.environ.get("DASTRM_URL")
+DROPBOX_TOKEN = os.environ.get("DROPBOX_TOKEN")
 
-# Function to download m3u8 content
-def download_m3u8(url, filename):
-    resp = requests.get(url)
+# Dropbox qovluqları
+DROPBOX_ERSTRM_PATH = "/nowtur1/erstrm/"
+DROPBOX_DASTRM_PATH = "/nowtur1/dastrm/"
+
+dbx = dropbox.Dropbox(DROPBOX_TOKEN)
+
+def download_segments(m3u8_url):
+    resp = requests.get(m3u8_url)
     resp.raise_for_status()
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(resp.text)
-    print(f"{filename} downloaded successfully.")
+    lines = resp.text.splitlines()
+    ts_links = [line for line in lines if line and not line.startswith("#")]
+    return ts_links
 
-# Download ERSTRM and DASTRM m3u8 files
-download_m3u8(erstrm_url, "erstrm.m3u8")
-download_m3u8(dastrm_url, "dastrm.m3u8")
+def upload_to_dropbox(ts_url, dropbox_path):
+    filename = os.path.basename(urlparse(ts_url).path)
+    resp = requests.get(ts_url)
+    resp.raise_for_status()
+    dbx.files_upload(resp.content, dropbox_path + filename, mode=dropbox.files.WriteMode.overwrite)
+    print(f"Uploaded: {dropbox_path}{filename}")
 
-# Upload to Dropbox
-dbx = dropbox.Dropbox(dropbox_token)
+def process_stream(m3u8_url, dropbox_folder):
+    ts_links = download_segments(m3u8_url)
+    for ts in ts_links:
+        upload_to_dropbox(ts, dropbox_folder)
 
-for file in ["erstrm.m3u8", "dastrm.m3u8"]:
-    with open(file, "rb") as f:
-        dest_path = f"/nowtur1/{file}"
-        dbx.files_upload(f.read(), dest_path, mode=dropbox.files.WriteMode.overwrite)
-        print(f"{file} uploaded to Dropbox at {dest_path}")
+if __name__ == "__main__":
+    if ERSTRM_URL:
+        process_stream(ERSTRM_URL, DROPBOX_ERSTRM_PATH)
+    if DASTRM_URL:
+        process_stream(DASTRM_URL, DROPBOX_DASTRM_PATH)
