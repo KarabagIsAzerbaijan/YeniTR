@@ -1,4 +1,4 @@
-name: NOWTV Dropbox Upload
+name: NOWTV Multi Dropbox Upload
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  upload_nowtv:
+  upload_nowtv_multi:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -21,7 +21,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests dropbox
 
-      - name: Run NOWTV script
+      - name: Run NOWTV Multi script
         env:
           DROPBOX_TOKEN: ${{ secrets.DROPBOX_TOKEN }}
-        run: python ressources/tur/nowtur_dropbox.py
+        run: python ressources/tur/nowtur_dropbox_multi.py
