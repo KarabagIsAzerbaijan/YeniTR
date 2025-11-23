@@ -1,18 +1,13 @@
-name: NowTur1 Upload
+name: nowtur1
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+  schedule:
+    - cron: '*/10 * * * *' # hər 10 dəqiqədən bir (istəyə görə dəyiş)
 
 jobs:
-  build-and-upload:
+  upload_streams:
     runs-on: ubuntu-latest
-    env:
-      ERSTRM_URL: ${{ secrets.ERSTRM_URL }}
-      DASTRM_URL: ${{ secrets.DASTRM_URL }}
-      DROPBOX_TOKEN: ${{ secrets.DROPBOX_TOKEN }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -20,13 +15,16 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.13'
+          python-version: "3.13"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install dropbox requests
+          pip install requests dropbox
 
-      - name: Run NowTur1 Script
-        run: |
-          python nowtur1.py
+      - name: Run nowtur1.py
+        run: python ressources/tur/nowtur1.py
+        env:
+          ERSTRM_URL: ${{ secrets.ERSTRM_URL }}
+          DASTRM_URL: ${{ secrets.DASTRM_URL }}
+          DROPBOX_TOKEN: ${{ secrets.DROPBOX_TOKEN }}
