@@ -2,7 +2,7 @@ name: NowTur1 Update
 
 on:
   schedule:
-    - cron: "*/427 * * * *"  # təxminən hər 3 saat 7 dəqiqə
+    - cron: "*/5 * * * *"  # təxminən hər 3 saat 7 dəqiqə
   workflow_dispatch:
 
 jobs:
