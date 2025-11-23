@@ -1,55 +1,41 @@
 import requests
 import re
+import os
 import dropbox
 from datetime import datetime
 
-# =============================
-# CONFIG
-# =============================
-DROPBOX_TOKEN = "sl.u.AGK4...sənin_token_daxil_et"  # Buraya Dropbox token
-DROPBOX_FOLDER_ERSTRM = "/nowturk1/ERSTRM/"
-DROPBOX_FOLDER_DASTRM = "/nowturk1/DASTRM/"
+# Dropbox token və qovluq yolları
+DROPBOX_TOKEN = os.environ['DROPBOX_TOKEN']
+DROPBOX_ERSTRM_PATH = '/nowtur1/ERSTRM/'
+DROPBOX_DASTRM_PATH = '/nowtur1/DASTRM/'
 
-URL_ERSTRM = "https://www.nowtv.com.tr/canli-yayin"
-URL_DASTRM = "https://www.nowtv.com.tr/canli-yayin"  # lazım gələrsə dəyiş
+dbx = dropbox.Dropbox(DROPBOX_TOKEN)
 
-# =============================
-# HELPERS
-# =============================
+# Funksiya tokenli linki əldə etmək üçün
 def get_tokened_link(url):
-    resp = requests.get(url, verify=False)
-    if resp.status_code != 200:
-        raise Exception(f"Failed to fetch URL {url}")
-    
-    match = re.search(r"daiUrl\s*:\s*'(https?://[^\']+)'", resp.text)
-    if match:
-        tokened_link = match.group(1)
-        return tokened_link
-    else:
+    response = requests.get(url, verify=False)
+    if response.status_code != 200:
+        raise Exception(f"HTTP {response.status_code} error")
+    match = re.search(r"daiUrl\s*:\s*'(https?://[^\']+)'", response.text)
+    if not match:
         raise Exception("Tokenli link tapılmadı")
+    return match.group(1)
 
-def upload_to_dropbox(file_content, dropbox_path):
-    dbx = dropbox.Dropbox(DROPBOX_TOKEN)
-    dbx.files_upload(file_content.encode(), dropbox_path, mode=dropbox.files.WriteMode.overwrite)
-    print(f"Uploaded: {dropbox_path}")
+# Funksiya .m3u8 faylını yaradıb Dropbox-a yükləyir
+def upload_to_dropbox(name, content, folder):
+    filename = f"{folder}{name}.m3u8"
+    dbx.files_upload(content.encode(), filename, mode=dropbox.files.WriteMode.overwrite)
 
-# =============================
-# MAIN
-# =============================
 def main():
-    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    url = "https://www.nowtv.com.tr/canli-yayin"
 
-    # ERSTRM
-    erstrm_link = get_tokened_link(URL_ERSTRM)
-    erstrm_filename = f"ERSTRM_{timestamp}.m3u8"
-    upload_to_dropbox(erstrm_link, DROPBOX_FOLDER_ERSTRM + erstrm_filename)
+    # ERSTRM link
+    erstrm_link = get_tokened_link(url)
+    upload_to_dropbox('ERSTRM', erstrm_link, DROPBOX_ERSTRM_PATH)
 
-    # DASTRM
-    dastrm_link = get_tokened_link(URL_DASTRM)
-    dastrm_filename = f"DASTRM_{timestamp}.m3u8"
-    upload_to_dropbox(dastrm_link, DROPBOX_FOLDER_DASTRM + dastrm_filename)
-
-    print("Bütün fayllar Dropbox-a əlavə olundu.")
+    # DASTRM link
+    dastrm_link = get_tokened_link(url)  # əgər ikinci link fərqlidirsə, burada ayrıca regex və ya URL qoy
+    upload_to_dropbox('DASTRM', dastrm_link, DROPBOX_DASTRM_PATH)
 
 if __name__ == "__main__":
     main()
