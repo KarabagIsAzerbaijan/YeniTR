@@ -1,55 +1,58 @@
 import requests
 import re
+import json
 import dropbox
 
 # Dropbox access token
-DROPBOX_TOKEN = "sl.u.AGJHP-QsUSJQYOYCoHbyZllHpCuGXcuBvds67LzjdNdJrNLw7mpivB3zyTdzvMIRyUWb-y5Ccd9XpIeM-8QSPZNd_qgGBmL4yQ7gGc9lDdcuQv95KKQ_cbemQyD82z5LGd271f3IKJCQHmMRmtuj6vH25uNlb8T7X3EAJUMNQdsDn4dzf7thNAWG41Gj1rmA6mRS5gMLUAhohTYoFy1-mhSw7T-rYU2-PFoj3gCMdhc5pRLYEgCLKedp-t1YmywLTO8uft2HN79QidHzQSrE60oeVFP9lunS-lleBkotkTVUDJpACRmrhLr_EZNIyn666LkXcgsBL3kpuZRcAi7ggo_gC5ZbkFJThz7RpASyQfSboBCT_dXWX1Z8BaytH4mzvqPAjwcy6FYVu1CucH55_vKPvyHsaNEorlxa6FvcfXm6V_oaLhlLbBnVxhZQZ7fgnS7Fxo1rhJUbsgylFk3ZasgAG3eUC6U-sdEvuKUrl0syHq86Ux3FhX01fGf6hPgKGIBjcv1e8pQslZoxto_s6IFVAlHLHtGaa2euzKUviAWaCjAaNvCsr7CKR0vAHWq-kuQJxLPidiIL2PTMdkbe1AEI460_-F31tplxO_Ilumj1oPs50H3EF9PhOrGpd_fsCrv1wIOhUseE2WwlJ8BfH0Re1R00Xk9TUul60lD6us7S69TeJWVPQ-v9IRHYRN-ac1Bw9n2ceCC74cL00s2_R0cqkiX4GhmLjgJEfO7eGA1_ecfbsPtqK4LfQnAGX4KtSaNFBxtgRef7I3qURCeP3k6Rfsb-FYB-7Eh-eBA_1DQvDPEDyHaFx3Uvk-kkTkKwcZ06HLkIbokIx_0SZi-asASk3gHynSYOKcgA7ZMekW5Sq4i8OnV4FANsAoWpG768vZMNrvijqFD3VzmApIEvi9FbnuSy5S0Z2-gIMSXxBkxEltgE3KtMHiORKoJWv7adLNtLrM6hoxRBciYJgVCWNKrj1lKCk9uMLcb_7J1u7Q-66XvPnDNV-rLJq9IZh8m3DoeuaBRR6xDd62ttaq_w1ab4sQzNl0z-yHJsd2j2YIgLC--AdimiNgMISftu9Os_tbONWB_eogKWjy_KOQ-J9OfE_TfqJdw8kTomf34i1z9COHOvfxA31S-jr6IZckuaNjG061WLzeGCKaamMeTxkR9oT9IggJXtxzfySTWrpuzEYCju1HT1qHSG1fHcCcjYlZR4HUrbRjs8dp7zbfE9o0Q2q5tewB2u4zRHfCbExJx1USCkWCuPm71Cql9QrFbIK-uPN2gGQc1S4QTSII5J-bGi"
+DROPBOX_TOKEN = "sl.u.AGJ1SmE0kpXWl_zIVahqw5HZAGDRDIhF5zGoyczvPka7IzTWbkLRlqaLQSCnrhxqRNqy4h_5NXlupG8bYHiiGPctIxG60Z-RZ8YiE4FKW3TSKDnj7Sv5o4QuxWc5SD_sIF1ynuUZkGKW3p1ffjpNhpmuyhEx3yIemictYRnpjPdIJ-zEJ_wDCUwPD0j3E-_CC_5jNsOui1AESZVowOEQCKZDMzwbChDuBTG2nmuBvZYiiA2aksqZwcOcoTvnYJULty3ec6p5qfDBjjsQU0Y5KqtC39-WsovP8MkLBtiNCogOAsZtdNj-yQR4_pQjcnQjFCpiW9vvpkZFcrTdm19ByZ6BTfTWYJI_VdGWJTe6l_wvww7fWaFPKrmxwqWQ88YMmUUwO1OrG7iaxRw1uSUJASjQ_2FrFRjeI81eF3ACfpkzK0s3SIQ_LRmJrC7uT-rHXRmA3z4ly4JQL4680VxTcsc9oD0DKNQd9uXNVom5yAR_fY6_YTwjmAhpib46psXgbqWrwOai3KqtoB-YBzvqhSnoJz1gEOS-Hps3LIa8O_USJC58UMihKhI2XTfy6qBNoQUqyvtOEL9PVoM1wejmLMMr5MJwPokHUj53P5Gx98OlH-9d0tHYumIfOpzIph5SS6Rs_6NKeKQjjl0DSmHvLIKfRBvoggsY6vThAD2ZWCfmbVrHN8Et8IhpwHpAFiGCuBkH5uiu4V7ZIjj2frlNnuAbgkp22eZSxG_DGjdwUgysqRTZgN7KRbnw0rBhRmoyXmfyocTH84bre5tcRQ5FQA4ep0sg1EFPidazqt0EVqrauDKeVgAYKroBtwL4x0otya3MyVCSEfFWSe4sLlRPxLuBr69-teJDCXnFOcrZ7K4EnLAiHlTmKVy5i5Bb36tM4b51_JoPIun86XGQJ5JLdea3OeuyNMAvx2l_AzVsrLtIMJWcuZDSa0Jjc9RujSQcZRD49yUufysbKiScJSKSHw389glabQEWH0OXsExVTmcI_JxkBjTSjfmPqfiQofRC-HlByaidilCfHz4rx5xB-szecGMC_gVzyZmn2twimSNIb5NVhjDDu8b-N9LRj32ryxu33jsMk2Ph8eUezevy1GS140UxNJKFbAqYI2tGPbu0hgCBPEzWsALlJzELEmCfHFNCvctEmqLCBZXG5UDQCAA-I3ThKeohaBFZeCVF-mYKb2PZQydKUI_DTaajBmAfPHYgj-fF7LKxJp92ADWp6lZ2NY_jawyZFPacjS4pAKQw8TF_HnTkw375S_zGnbvKFEEDDDM-_GKjCY7PBdMCs6GW"
+
 DROPBOX_PATH_ERC = "/ercdn.m3u8"
 DROPBOX_PATH_DAI = "/dai.m3u8"
 
-# Source URLs
-ERSTRM_URL = "https://www.nowtv.com.tr/canli-yayin"
-DAI_URL = "https://www.nowtv.com.tr/canli-yayin"
+NOWTV_URL = "https://www.nowtv.com.tr/canli-yayin"
 
-# Initialize Dropbox client
 dbx = dropbox.Dropbox(DROPBOX_TOKEN)
 
-def get_tokened_link(url):
-    resp = requests.get(url, verify=False)
-    resp.raise_for_status()
-    # Tokeni çıxarmaq üçün regex
-    match = re.search(r"daiUrl\s*:\s*'(https?://[^\']+)'", resp.text)
-    if match:
-        return match.group(1)
-    else:
-        # Alternativ: ERcdn token
-        match2 = re.search(r"erUrl\s*:\s*'(https?://[^\']+)'", resp.text)
-        if match2:
-            return match2.group(1)
-    raise Exception("Tokenli link tapılmadı.")
 
-def create_m3u8_content(tokened_url):
-    return f"""#EXTM3U
-#EXT-X-VERSION:1
-#EXT-X-STREAM-INF:BANDWIDTH=230000,CODECS="avc1.4d001e,avc1.42000d,avc1.64000c,avc1.64001e,avc1.64001f,mp4a.40.2,mp4a.40.5"
-{tokened_url}
-"""
+def extract_token_url(html):
+    nuxt = re.search(r"window\.__NUXT__=(\{.*?\});", html, re.S)
+    if not nuxt:
+        raise Exception("NUXT JSON tapılmadı")
 
-def upload_to_dropbox(content, path):
-    dbx.files_upload(content.encode(), path, mode=dropbox.files.WriteMode.overwrite)
+    data = json.loads(nuxt.group(1))
+
+    try:
+        url = data["state"]["live"]["player"]["source"]["url"]
+        return url
+    except Exception:
+        raise Exception("Tokenli HLS url tapılmadı")
+
+
+def create_m3u8(url):
+    return f"#EXTM3U\n{url}\n"
+
+
+def upload(path, content):
+    dbx.files_upload(
+        content.encode(),
+        path,
+        mode=dropbox.files.WriteMode.overwrite
+    )
+
 
 def main():
-    # ERC faylı
-    er_link = get_tokened_link(ERSTRM_URL)
-    er_content = create_m3u8_content(er_link)
-    upload_to_dropbox(er_content, DROPBOX_PATH_ERC)
+    resp = requests.get(NOWTV_URL)
+    resp.raise_for_status()
 
-    # DAI faylı
-    dai_link = get_tokened_link(DAI_URL)
-    dai_content = create_m3u8_content(dai_link)
-    upload_to_dropbox(dai_content, DROPBOX_PATH_DAI)
+    token_url = extract_token_url(resp.text)
 
-    print("ERC və DAI faylları Dropbox-a yazıldı.")
+    content = create_m3u8(token_url)
+
+    upload(DROPBOX_PATH_ERC, content)
+    upload(DROPBOX_PATH_DAI, content)
+
+    print("Hazır: ERC və DAI düzgün yazıldı.")
+
 
 if __name__ == "__main__":
     main()
