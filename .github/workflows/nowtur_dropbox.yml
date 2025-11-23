@@ -1,12 +1,12 @@
-name: Update NowTV Links
+name: NowTV Dropbox Upload
 
 on:
   schedule:
-    - cron: "*/5 * * * *"  # hər 5 dəqiqədə bir
-  workflow_dispatch:
+    - cron: '*/5 * * * *'  # Hər 5 dəqiqədən bir işə düşəcək
+  workflow_dispatch:  # İstəyə görə manual işə salmaq üçün
 
 jobs:
-  update-nowtv:
+  upload_nowtv:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,10 +23,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests dropbox
 
-    - name: Run NowTV Dropbox update
+    - name: Run NowTV Dropbox script
       env:
         DROPBOX_TOKEN: ${{ secrets.DROPBOX_TOKEN }}
-        ERSTRM_URL: "https://www.nowtv.com.tr/canli-yayin"
-        DAI_URL: "https://www.nowtv.com.tr/canli-yayin"
       run: |
         python ressources/tur/nowtur_dropbox.py
