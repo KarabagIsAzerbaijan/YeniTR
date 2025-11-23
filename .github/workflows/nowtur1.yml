@@ -2,8 +2,8 @@ name: nowtur1 action
 
 on:
   schedule:
-    - cron: '07 */3 * * *'  # hər 3 saata bir run
-  workflow_dispatch:        # manual run
+    - cron: '07 */3 * * *'   # hər 3 saata bir run
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -15,45 +15,48 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Git config
-        run: |
-          git config --global user.email "nowtur1@example.com"
-          git config --global user.name "nowtur1 bot"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-      - name: Check Python version
-        run: python3 --version
+      - name: Install dependencies
+        run: pip install requests dropbox
 
-      - name: Fetch nowtur1 URLs and create m3u8
+      - name: Load URLs from secrets
         env:
           ERSTRM_URL: ${{ secrets.ERSTRM_URL }}
           DASTRM_URL: ${{ secrets.DASTRM_URL }}
         run: |
+          echo "erstrm=${ERSTRM_URL}" >> $GITHUB_ENV
+          echo "dastrm=${DASTRM_URL}" >> $GITHUB_ENV
+
+      - name: Create output files
+        run: |
+          mkdir -p outputs/nowtur1
           python3 ressources/tur/nowtur1.py
 
-      - name: Install Dropbox SDK
-        run: pip install --upgrade dropbox
-
-      - name: Upload outputs to Dropbox
+      - name: Upload to Dropbox
         env:
           DROPBOX_TOKEN: ${{ secrets.DROPBOX_TOKEN }}
         run: |
-          python3 - <<'EOF'
-          import os, dropbox
+          python3 - <<EOF
+import os
+import dropbox
 
-          dbx = dropbox.Dropbox(os.environ["DROPBOX_TOKEN"])
-          folder_path = "/nowtur1"  # Dropbox qovluğu
+dbx = dropbox.Dropbox(os.environ["DROPBOX_TOKEN"])
+local_dir = "outputs/nowtur1"
+dropbox_folder = "/nowtur1"
 
-          local_dir = "outputs/nowtur1"
-          for file_name in os.listdir(local_dir):
-              local_path = os.path.join(local_dir, file_name)
-              dropbox_path = folder_path + "/" + file_name
-              with open(local_path, "rb") as f:
-                  dbx.files_upload(f.read(), dropbox_path, mode=dropbox.files.WriteMode("overwrite"))
-          print("Dropbox-a yükləndi:", os.listdir(local_dir))
-          EOF
+for fname in os.listdir(local_dir):
+    local_path = os.path.join(local_dir, fname)
+    with open(local_path, "rb") as f:
+        dbx.files_upload(f.read(), f"{dropbox_folder}/{fname}", mode=dropbox.files.WriteMode.overwrite)
+        print("Uploaded", fname)
+EOF
 
-      - name: Commit & Push updates
+      - name: Commit output files
         run: |
           git add outputs/nowtur1/*.m3u8
-          git commit -m "nowtur1 multivariant links updated" || echo "No changes to commit"
-          git push || echo "Push failed, check permissions"
+          git commit -m "nowtur1 links updated" || echo "No changes to commit"
+          git push || echo "Push failed"
