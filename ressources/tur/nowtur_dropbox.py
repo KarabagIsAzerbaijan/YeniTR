@@ -1,39 +1,36 @@
 import requests
-import dropbox
+import re
 import json
+import dropbox
 
-# Dropbox token və fayl yolları
-DROPBOX_TOKEN = "sl.u.AGKD4Yljk4YTSxZAKrRIrVv6h_X3X7pVWAahld7IUd6-X9iJCpTGqRBOXSug8m6L70XvL4_pwPPvGeV12w5ugXzVe5xy1f8EFg_i4xHUge6qgqLN2eyWDwJE47MlbNP3eMQ0FiegQAbA2fgduGbUswUPT7NYCDi9Bn2qDftHQdqkNxOtS5YnURySg5x8F7UwxQs17JIitSpXWpS9LdvdCND6LqdyZv03lc4ltMYGEGEpjDQHqjFfAAgEaAeBQl22t43Lz4DdgXgenERZGxJJZu1nc8iPT1crbut5EtehsgqrwcuxQ9XEdex4mEV68Egxdcx3Hr0d_iw0NBn7-KjV9RrLNZWXxkOhBAnllYKy0HJIkvyvNGA-HONxvYCPn-qTtY4oEYqCx3oEn9JcSJVVq2B4th9OxYlZpcpRpWZCk27zQLgExOnu7UqVbG45YtdH50ebs-a2Lqijr5SodQhKeZdq3FftTH_OW6Qs4ahn00_xwpLT7ye7ZBqXZMa0PGqPQ9lv9jLnBIPXAvamDIEIJCE0BASaOVakfH03ZQ-XH3R54jb6maBhLsbp9enwdhddpe4tnzhaXOd2uFAAKPiD1NJFsJTKMsv4Hs9xaDU9xnWX5IgaTCezXxm5VvK3pLVu8u0WMxpN0QBi2-C6pT9MLJxL2XNlqliHPZzMtuBqKop3_sI5tk5D1B5I__JEA9_fuBOZsQnDLwXRTbaw7BpG0ucJj9qpxKX1IirgTZqlzf2G6GBm_ldkWmTfoOKbRNthflOgpw0ioh3YqPaQbadk6BKvrxqoOYauDobLw1VC0xD7oH-e6mXT_6Mdit7HUd5tRd0_WIbd452bV8IrDfRnDxSxP3zzo--XDIMpzC_B86N38vBwqzOAU-E9J2ZxlluxJV20Ss2QSW-nd0HiYco2e8frCZpe-V9UJ0uN-MN-GRTW_iZ31H6UAgdAIsiPVGDPWGwFJcUI8D-a80ey8Maan4Wf2jOSLQuTWFjyVmlSxwlcxrS9REVut8uZAz-unS7RxruU3Ic_Z-lh8Io2ywLzvjJZ4iW-yLzfZA--pWu9dJF9EnONa6jE-U4GivVYGgAnDDF3ToyoIum_q7qohlSSrUTieyLM0yL58PPJJYcuu5tux0Lrvz4z0xz4J1AZvOebRC-Yal0Zx5NI-8UpRZyovLwzF4pI58u0P6A8RiW2uQH7KlRnwFqR9FrTop2ZGX1hc8eZNC7XawCcnY-HY4BLngBs-GX8ShtZ0F1uOIXIuHJIVuWTuzeyPXe-SA62hS-2l7fUYgETx2I4vjBpBrSjHaef"
+# Dropbox access token
+DROPBOX_TOKEN = "sl.u.AGJHP-QsUSJQYOYCoHbyZllHpCuGXcuBvds67LzjdNdJrNLw7mpivB3zyTdzvMIRyUWb-y5Ccd9XpIeM-8QSPZNd_qgGBmL4yQ7gGc9lDdcuQv95KKQ_cbemQyD82z5LGd271f3IKJCQHmMRmtuj6vH25uNlb8T7X3EAJUMNQdsDn4dzf7thNAWG41Gj1rmA6mRS5gMLUAhohTYoFy1-mhSw7T-rYU2-PFoj3gCMdhc5pRLYEgCLKedp-t1YmywLTO8uft2HN79QidHzQSrE60oeVFP9lunS-lleBkotkTVUDJpACRmrhLr_EZNIyn666LkXcgsBL3kpuZRcAi7ggo_gC5ZbkFJThz7RpASyQfSboBCT_dXWX1Z8BaytH4mzvqPAjwcy6FYVu1CucH55_vKPvyHsaNEorlxa6FvcfXm6V_oaLhlLbBnVxhZQZ7fgnS7Fxo1rhJUbsgylFk3ZasgAG3eUC6U-sdEvuKUrl0syHq86Ux3FhX01fGf6hPgKGIBjcv1e8pQslZoxto_s6IFVAlHLHtGaa2euzKUviAWaCjAaNvCsr7CKR0vAHWq-kuQJxLPidiIL2PTMdkbe1AEI460_-F31tplxO_Ilumj1oPs50H3EF9PhOrGpd_fsCrv1wIOhUseE2WwlJ8BfH0Re1R00Xk9TUul60lD6us7S69TeJWVPQ-v9IRHYRN-ac1Bw9n2ceCC74cL00s2_R0cqkiX4GhmLjgJEfO7eGA1_ecfbsPtqK4LfQnAGX4KtSaNFBxtgRef7I3qURCeP3k6Rfsb-FYB-7Eh-eBA_1DQvDPEDyHaFx3Uvk-kkTkKwcZ06HLkIbokIx_0SZi-asASk3gHynSYOKcgA7ZMekW5Sq4i8OnV4FANsAoWpG768vZMNrvijqFD3VzmApIEvi9FbnuSy5S0Z2-gIMSXxBkxEltgE3KtMHiORKoJWv7adLNtLrM6hoxRBciYJgVCWNKrj1lKCk9uMLcb_7J1u7Q-66XvPnDNV-rLJq9IZh8m3DoeuaBRR6xDd62ttaq_w1ab4sQzNl0z-yHJsd2j2YIgLC--AdimiNgMISftu9Os_tbONWB_eogKWjy_KOQ-J9OfE_TfqJdw8kTomf34i1z9COHOvfxA31S-jr6IZckuaNjG061WLzeGCKaamMeTxkR9oT9IggJXtxzfySTWrpuzEYCju1HT1qHSG1fHcCcjYlZR4HUrbRjs8dp7zbfE9o0Q2q5tewB2u4zRHfCbExJx1USCkWCuPm71Cql9QrFbIK-uPN2gGQc1S4QTSII5J-bGi"
+
 DROPBOX_PATH_ERC = "/ercdn.m3u8"
 DROPBOX_PATH_DAI = "/dai.m3u8"
 
-API_URL = "https://www.nowtv.com.tr/api/v1/live/stream"
+NOWTV_URL = "https://www.nowtv.com.tr/canli-yayin"
 
 dbx = dropbox.Dropbox(DROPBOX_TOKEN)
 
-def get_stream_urls():
-    headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "application/json"
-    }
 
-    resp = requests.get(API_URL, headers=headers)
-    resp.raise_for_status()
+def extract_token_url(html):
+    nuxt = re.search(r"window\.__NUXT__=(\{.*?\});", html, re.S)
+    if not nuxt:
+        raise Exception("NUXT JSON tapılmadı")
 
-    data = resp.json()
+    data = json.loads(nuxt.group(1))
 
-    # JSON strukturu dəyişə bilər, amma əsas olaraq belədir:
-    ercdn = data["data"]["sources"]["ercdn"]
-    dai = data["data"]["sources"]["dai"]
+    try:
+        url = data["state"]["live"]["player"]["source"]["url"]
+        return url
+    except Exception:
+        raise Exception("Tokenli HLS url tapılmadı")
 
-    return ercdn, dai
 
 def create_m3u8(url):
-    return f"""#EXTM3U
-#EXT-X-VERSION:3
-#EXT-X-STREAM-INF:BANDWIDTH=2500000
-{url}
-"""
+    return f"#EXTM3U\n{url}\n"
+
 
 def upload(path, content):
     dbx.files_upload(
@@ -42,18 +39,20 @@ def upload(path, content):
         mode=dropbox.files.WriteMode.overwrite
     )
 
+
 def main():
-    print("Token alınır...")
+    resp = requests.get(NOWTV_URL)
+    resp.raise_for_status()
 
-    ercdn_url, dai_url = get_stream_urls()
+    token_url = extract_token_url(resp.text)
 
-    er_m3u8 = create_m3u8(ercdn_url)
-    dai_m3u8 = create_m3u8(dai_url)
+    content = create_m3u8(token_url)
 
-    upload(DROPBOX_PATH_ERC, er_m3u8)
-    upload(DROPBOX_PATH_DAI, dai_m3u8)
+    upload(DROPBOX_PATH_ERC, content)
+    upload(DROPBOX_PATH_DAI, content)
 
-    print("ERC və DAI faylları uğurla Dropbox-a yazıldı!")
+    print("Hazır: ERC və DAI düzgün yazıldı.")
+
 
 if __name__ == "__main__":
     main()
