@@ -6,8 +6,12 @@ from datetime import datetime
 
 # ---------------- CONFIG ----------------
 DROPBOX_TOKEN = os.environ.get("DROPBOX_TOKEN")
-DROPBOX_FOLDER = "/NOWTV"  # Dropbox-da qovluq adı
-NOWTV_URL = "https://www.nowtv.com.tr/canli-yayin"
+DROPBOX_BASE_FOLDER = "/NOWTV"  # Dropbox əsas qovluğu
+NOWTV_URLS = {
+    "NOWTV": "https://www.nowtv.com.tr/canli-yayin",
+    "ERCDN": "https://www.ercdn.com.tr/stream",
+    "DAI": "https://www.dai.com.tr/stream"
+}
 # ----------------------------------------
 
 dbx = dropbox.Dropbox(DROPBOX_TOKEN)
@@ -22,7 +26,7 @@ def get_tokened_link(url):
         if match:
             return match.group(1)
         else:
-            print("Tokened link not found")
+            print(f"Tokened link not found for {url}")
             return None
     except Exception as e:
         print(f"Error fetching tokened link: {e}")
@@ -31,18 +35,25 @@ def get_tokened_link(url):
 def upload_to_dropbox(name, link):
     if not link:
         return
-    # Fayl adı: NOWTV_YYYYMMDD_HHMM.m3u8
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-    filename = f"{DROPBOX_FOLDER}/{name}_{timestamp}.m3u8"
+    folder = f"{DROPBOX_BASE_FOLDER}/{name}"
+    filename = f"{folder}/{name}_{timestamp}.m3u8"
     try:
+        # Dropbox qovluğu yoxdursa yarat
+        try:
+            dbx.files_get_metadata(folder)
+        except dropbox.exceptions.ApiError:
+            dbx.files_create_folder_v2(folder)
+        
         dbx.files_upload(link.encode('utf-8'), filename, mode=dropbox.files.WriteMode.overwrite)
         print(f"Uploaded to Dropbox: {filename}")
     except Exception as e:
         print(f"Dropbox upload error: {e}")
 
 def main():
-    link = get_tokened_link(NOWTV_URL)
-    upload_to_dropbox("NOWTV", link)
+    for name, url in NOWTV_URLS.items():
+        link = get_tokened_link(url)
+        upload_to_dropbox(name, link)
 
 if __name__ == "__main__":
     main()
