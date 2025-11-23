@@ -1,31 +1,32 @@
-name: NowTV Dropbox Updater
+name: Update NowTV Links
 
 on:
   schedule:
-    # Hər 5 dəqiqədə bir işləyəcək
-    - cron: '*/5 * * * *'
-  workflow_dispatch: # Əl ilə də işlətmək üçün
+    - cron: "*/5 * * * *"  # hər 5 dəqiqədə bir
+  workflow_dispatch:
 
 jobs:
-  update_nowtv:
+  update-nowtv:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests dropbox
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests dropbox
 
-      - name: Run NowTV Dropbox script
-        env:
-          DROPBOX_TOKEN: ${{ secrets.DROPBOX_TOKEN }}
-        run: |
-          python ressources/tur/nowtur_dropbox.py
+    - name: Run NowTV Dropbox update
+      env:
+        DROPBOX_TOKEN: ${{ secrets.DROPBOX_TOKEN }}
+        ERSTRM_URL: "https://www.nowtv.com.tr/canli-yayin"
+        DAI_URL: "https://www.nowtv.com.tr/canli-yayin"
+      run: |
+        python ressources/tur/nowtur_dropbox.py
