@@ -2,7 +2,7 @@ name: NowTV Dropbox Update
 
 on:
   schedule:
-    - cron: '*/5 * * * *'   # Hər 5 dəqiqədə run
+    - cron: '*/60 * * * *'   # Hər 5 dəqiqədə run
   workflow_dispatch:        # İstəyə bağlı manual run
 
 jobs:
