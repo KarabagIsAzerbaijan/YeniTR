@@ -2,8 +2,8 @@ name: SysData Update
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # 3 saata bir avtomatik run
-  workflow_dispatch:       # manual run üçün düymə
+    - cron: '0 */3 * * *'  # Hər 3 saatda bir run
+  workflow_dispatch:       # manual run düyməsi
 
 jobs:
   update_sysdata:
@@ -22,12 +22,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Fetch tokened links
+      - name: Fetch tokened link
         id: fetch_links
         run: |
-          er_url=$(python3 ressources/tur/sysdata.py)
-          echo "er_url=${er_url}" >> $GITHUB_ENV
-          dai_url=$(echo $er_url | sed 's/ercdn/daioncdn/' | sed 's/playlist.m3u8/nowtv.m3u8/')
+          token_url=$(python3 ressources/tur/sysdata.py)
+          echo "token_url=${token_url}" >> $GITHUB_ENV
+          dai_url=$(echo $token_url | sed 's/ercdn/daioncdn/' | sed 's/playlist.m3u8/nowtv.m3u8/')
           echo "dai_url=${dai_url}" >> $GITHUB_ENV
 
       - name: Ensure M3U8 files exist
@@ -40,7 +40,7 @@ jobs:
 
       - name: Replace content in M3U8 files
         run: |
-          sed -i "s|ercdn.net/nowtv.*|${er_url}|g" core.m3u8 set1.m3u8 set2.m3u8
+          sed -i "s|ercdn.net/nowtv.*|${token_url}|g" core.m3u8 set1.m3u8 set2.m3u8
           sed -i "s|daioncdn.net/nowtv.*|${dai_url}|g" core.m3u8 set1.m3u8 set2.m3u8
 
       - name: Commit & push changes
