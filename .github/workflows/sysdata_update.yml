@@ -3,7 +3,7 @@ name: SysData Update
 on:
   schedule:
     - cron: '0 */3 * * *'  # Hər 3 saatda bir run
-  workflow_dispatch:       # manual run düyməsi
+  workflow_dispatch:       # Manual run düyməsi
 
 jobs:
   update_sysdata:
@@ -25,7 +25,7 @@ jobs:
       - name: Fetch tokened link
         id: fetch_links
         run: |
-          token_url=$(python3 ressources/tur/sysdata.py)
+          token_url=$(python3 sysdata.py)
           echo "token_url=${token_url}" >> $GITHUB_ENV
           dai_url=$(echo $token_url | sed 's/ercdn/daioncdn/' | sed 's/playlist.m3u8/nowtv.m3u8/')
           echo "dai_url=${dai_url}" >> $GITHUB_ENV
