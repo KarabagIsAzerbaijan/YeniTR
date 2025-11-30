@@ -1,0 +1,52 @@
+name: SysData Update
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'  # 3 saata bir avtomatik run
+  workflow_dispatch:       # manual run üçün düymə
+
+jobs:
+  update_sysdata:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.13
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Fetch tokened links
+        id: fetch_links
+        run: |
+          er_url=$(python3 ressources/tur/sysdata.py)
+          echo "er_url=${er_url}" >> $GITHUB_ENV
+          dai_url=$(echo $er_url | sed 's/ercdn/daioncdn/' | sed 's/playlist.m3u8/nowtv.m3u8/')
+          echo "dai_url=${dai_url}" >> $GITHUB_ENV
+
+      - name: Ensure M3U8 files exist
+        run: |
+          for f in core.m3u8 set1.m3u8 set2.m3u8; do
+            if [ ! -f "$f" ]; then
+              echo "#EXTM3U" > $f
+            fi
+          done
+
+      - name: Replace content in M3U8 files
+        run: |
+          sed -i "s|ercdn.net/nowtv.*|${er_url}|g" core.m3u8 set1.m3u8 set2.m3u8
+          sed -i "s|daioncdn.net/nowtv.*|${dai_url}|g" core.m3u8 set1.m3u8 set2.m3u8
+
+      - name: Commit & push changes
+        run: |
+          git config --global user.name "sysdata bot"
+          git config --global user.email "sysdata@example.com"
+          git add core.m3u8 set1.m3u8 set2.m3u8
+          git commit -m "Auto-update sysdata M3U8 files" || echo "No changes to commit"
+          git push
