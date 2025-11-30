@@ -17,36 +17,11 @@ jobs:
           git config --global user.email "noreply@github.com"
           git config --global user.name "bot"
 
-      - name: run script
-        id: scr
+      - name: run reader
         run: |
-          u=$(python3 ressources/tur/nowtur1.py 2>/dev/null || echo "")
-          
-          if [ -z "$u" ]; then
-             echo "valid=no" >> $GITHUB_ENV
-             exit 0
-          fi
-
-          echo "valid=yes" >> $GITHUB_ENV
-          echo "u=$u" >> $GITHUB_ENV
-
-          u2=$(echo "$u" | sed 's/live-ad\.ercdn\.net\/nowtv\/playlist\.m3u8/daioncdn.net\/nowtv\/nowtv.m3u8/')
-          echo "u2=$u2" >> $GITHUB_ENV
-
-      - name: replace
-        if: env.valid == 'yes'
-        run: |
-          sed -i "s|https://[^ \"']*ercdn.net/nowtv[^ \"']*|$u|g" core.m3u
-          sed -i "s|https://[^ \"']*daioncdn.net/nowtv[^ \"']*|$u2|g" core.m3u
-
-          sed -i "s|https://[^ \"']*ercdn.net/nowtv[^ \"']*|$u|g" set1.m3u
-          sed -i "s|https://[^ \"']*daioncdn.net/nowtv[^ \"']*|$u2|g" set1.m3u
-
-          sed -i "s|https://[^ \"']*ercdn.net/nowtv[^ \"']*|$u|g" set2.m3u
-          sed -i "s|https://[^ \"']*daioncdn.net/nowtv[^ \"']*|$u2|g" set2.m3u
+          python3 reader.py
 
       - name: commit
-        if: env.valid == 'yes'
         run: |
           git add core.m3u set1.m3u set2.m3u
           git commit -m "." || true
