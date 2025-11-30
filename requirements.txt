@@ -1,2 +1,2 @@
-requests
-dropbox
+requests>=2.30.0
+dropbox>=13.0.0
