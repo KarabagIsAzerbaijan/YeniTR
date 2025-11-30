@@ -2,12 +2,17 @@ name: NowTV Dropbox Update
 
 on:
   schedule:
-    - cron: '*/60 * * * *'   # Hər 5 dəqiqədə run
-  workflow_dispatch:        # İstəyə bağlı manual run
+    - cron: '*/187 * * * *'   # Hər 60 dəqiqədə run
+  workflow_dispatch:          # İstəyə bağlı manual run
 
 jobs:
   update_nowtv:
     runs-on: ubuntu-latest
+
+    env:
+      DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
+      DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
+      DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
 
     steps:
       - name: Checkout repo
