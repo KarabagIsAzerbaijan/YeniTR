@@ -2,7 +2,6 @@ import os
 import requests
 import re
 import dropbox
-from dropbox.oauth import DropboxOAuth2FlowNoRedirect
 
 APP_KEY = os.environ.get("DROPBOX_APP_KEY")
 APP_SECRET = os.environ.get("DROPBOX_APP_SECRET")
@@ -12,7 +11,7 @@ DROPBOX_PATH_ERC = "/ercdn.m3u8"
 DROPBOX_PATH_DAI = "/dai.m3u8"
 
 def get_dropbox_client():
-    # Automatic token refresh using refresh token
+    # Automatic token refresh
     dbx = dropbox.Dropbox(
         oauth2_refresh_token=REFRESH_TOKEN,
         app_key=APP_KEY,
