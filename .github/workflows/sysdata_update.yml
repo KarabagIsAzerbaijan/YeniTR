@@ -30,18 +30,15 @@ jobs:
           dai_url=$(echo $token_url | sed 's/ercdn/daioncdn/' | sed 's/playlist.m3u8/nowtv.m3u8/')
           echo "dai_url=${dai_url}" >> $GITHUB_ENV
 
-      - name: Ensure M3U8 files exist
+      - name: Update M3U8 files with token URLs
         run: |
           for f in core.m3u8 set1.m3u8 set2.m3u8; do
-            if [ ! -f "$f" ]; then
-              echo "#EXTM3U" > $f
-            fi
+            echo "#EXTM3U" > $f
+            echo "#EXTINF:-1, NowTV ER Stream" >> $f
+            echo "${token_url}" >> $f
+            echo "#EXTINF:-1, NowTV DAI Stream" >> $f
+            echo "${dai_url}" >> $f
           done
-
-      - name: Replace content in M3U8 files
-        run: |
-          sed -i "s|ercdn.net/nowtv.*|${token_url}|g" core.m3u8 set1.m3u8 set2.m3u8
-          sed -i "s|daioncdn.net/nowtv.*|${dai_url}|g" core.m3u8 set1.m3u8 set2.m3u8
 
       - name: Commit & push changes
         run: |
